@@ -54,24 +54,14 @@ function getTotals() {
   return calculateTotals(cart, discountValueEl.value, discountTypeEl.value);
 }
 
-function renderCart() {
-  if (cart.length === 0) {
-    cartItems.innerHTML = '<div class="text-center text-gray-500 py-4">Cart is empty</div>';
-    itemCountEl.textContent = '0';
-    subtotalEl.textContent = formatMoney(0);
-    discountAmountEl.textContent = `-${formatMoney(0)}`;
-    grandTotalEl.textContent = formatMoney(0);
-    return;
-  }
+const EMPTY_CART_HTML = '<div class="text-center text-gray-500 py-4">Cart is empty</div>';
 
-  const { itemCount, subtotal, discount, total } = getTotals();
-
-  cartItems.innerHTML = cart.map((c, idx) => {
-    return `
+function cartItemHTML(item, idx) {
+  return `
       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <div class="flex-1">
-          <div class="font-medium text-gray-900">${c.name}</div>
-          <div class="text-sm text-gray-600">${formatMoney(c.price)} × ${c.qty}</div>
+          <div class="font-medium text-gray-900">${item.name}</div>
+          <div class="text-sm text-gray-600">${formatMoney(item.price)} × ${item.qty}</div>
         </div>
         <div class="flex items-center gap-2">
           <button data-idx="${idx}" class="dec-btn w-8 h-8 rounded border border-gray-300 hover:bg-gray-100">−</button>
@@ -80,14 +70,16 @@ function renderCart() {
         </div>
       </div>
     `;
-  }).join('');
+}
 
+function renderTotals({ itemCount, subtotal, discount, total }) {
   itemCountEl.textContent = itemCount;
   subtotalEl.textContent = formatMoney(subtotal);
   discountAmountEl.textContent = `-${formatMoney(discount)}`;
   grandTotalEl.textContent = formatMoney(total);
+}
 
-  // Attach handlers
+function bindCartButtons() {
   document.querySelectorAll('.dec-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.idx);
@@ -111,6 +103,12 @@ function renderCart() {
       renderCart();
     });
   });
+}
+
+function renderCart() {
+  cartItems.innerHTML = cart.length === 0 ? EMPTY_CART_HTML : cart.map(cartItemHTML).join('');
+  renderTotals(getTotals());
+  bindCartButtons();
 }
 
 clearCartBtn.addEventListener('click', () => {
