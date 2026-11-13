@@ -1,5 +1,5 @@
 // Bump cache version to force service worker update when changed
-const CACHE = 'mini-pos-v2';
+const CACHE = 'mini-pos-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const ASSETS = [
   './css/style.css',
   './js/db.js',
   './js/shared.js',
+  './js/format.js',
+  './js/cart.js',
   './js/dashboard.js',
   './js/products.js',
   './js/pos.js',
