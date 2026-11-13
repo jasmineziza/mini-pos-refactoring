@@ -64,9 +64,9 @@ function cartItemHTML(item, idx) {
           <div class="text-sm text-gray-600">${formatMoney(item.price)} × ${item.qty}</div>
         </div>
         <div class="flex items-center gap-2">
-          <button data-idx="${idx}" class="dec-btn w-8 h-8 rounded border border-gray-300 hover:bg-gray-100">−</button>
-          <button data-idx="${idx}" class="inc-btn w-8 h-8 rounded border border-gray-300 hover:bg-gray-100">+</button>
-          <button data-idx="${idx}" class="rem-btn w-8 h-8 rounded border border-red-300 text-red-600 hover:bg-red-50">×</button>
+          <button data-idx="${idx}" data-action="dec" class="dec-btn w-8 h-8 rounded border border-gray-300 hover:bg-gray-100">−</button>
+          <button data-idx="${idx}" data-action="inc" class="inc-btn w-8 h-8 rounded border border-gray-300 hover:bg-gray-100">+</button>
+          <button data-idx="${idx}" data-action="remove" class="rem-btn w-8 h-8 rounded border border-red-300 text-red-600 hover:bg-red-50">×</button>
         </div>
       </div>
     `;
@@ -79,36 +79,23 @@ function renderTotals({ itemCount, subtotal, discount, total }) {
   grandTotalEl.textContent = formatMoney(total);
 }
 
-function bindCartButtons() {
-  document.querySelectorAll('.dec-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.idx);
-      cart[idx].qty = Math.max(1, cart[idx].qty - 1);
-      renderCart();
-    });
-  });
+const CART_ACTIONS = {
+  dec: (idx) => { cart[idx].qty = Math.max(1, cart[idx].qty - 1); },
+  inc: (idx) => { cart[idx].qty += 1; },
+  remove: (idx) => { cart.splice(idx, 1); }
+};
 
-  document.querySelectorAll('.inc-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.idx);
-      cart[idx].qty += 1;
-      renderCart();
-    });
-  });
-
-  document.querySelectorAll('.rem-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.idx);
-      cart.splice(idx, 1);
-      renderCart();
-    });
-  });
-}
+// Satu listener untuk semua tombol keranjang (event delegation), dipasang sekali.
+cartItems.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  CART_ACTIONS[btn.dataset.action](Number(btn.dataset.idx));
+  renderCart();
+});
 
 function renderCart() {
   cartItems.innerHTML = cart.length === 0 ? EMPTY_CART_HTML : cart.map(cartItemHTML).join('');
   renderTotals(getTotals());
-  bindCartButtons();
 }
 
 clearCartBtn.addEventListener('click', () => {
