@@ -30,22 +30,29 @@ async function tx(store, mode, fn) {
   });
 }
 
+// Kumpulkan semua hasil cursor (dari store atau index) menjadi array.
+function collectCursor(source, range) {
+  return new Promise((resolve) => {
+    const rows = [];
+    source.openCursor(range).onsuccess = (e) => {
+      const cur = e.target.result;
+      if (cur) { rows.push(cur.value); cur.continue(); }
+      else resolve(rows);
+    };
+  });
+}
+
+function getAll(storeName) {
+  return tx(storeName, 'readonly', (s) => collectCursor(s));
+}
+
 // Products
 export async function addProduct(name, price) {
   return tx('products', 'readwrite', (s) => s.add({ name, price: Number(price) }));
 }
 
 export async function getProducts() {
-  return tx('products', 'readonly', (s) => {
-    return new Promise((resolve) => {
-      const items = [];
-      s.openCursor().onsuccess = (e) => {
-        const cur = e.target.result;
-        if (cur) { items.push(cur.value); cur.continue(); }
-        else resolve(items);
-      };
-    });
-  });
+  return getAll('products');
 }
 
 export async function deleteProduct(id) {
@@ -58,29 +65,11 @@ export async function addSale(sale) {
 }
 
 export async function getSalesInRange(fromISO, toISO) {
-  return tx('sales', 'readonly', (s) => {
-    const idx = s.index('date');
-    const range = IDBKeyRange.bound(fromISO, toISO);
-    return new Promise((resolve) => {
-      const rows = [];
-      idx.openCursor(range).onsuccess = (e) => {
-        const cur = e.target.result;
-        if (cur) { rows.push(cur.value); cur.continue(); }
-        else resolve(rows);
-      };
-    });
-  });
+  return tx('sales', 'readonly', (s) =>
+    collectCursor(s.index('date'), IDBKeyRange.bound(fromISO, toISO))
+  );
 }
 
 export async function getAllSales() {
-  return tx('sales', 'readonly', (s) => {
-    return new Promise((resolve) => {
-      const items = [];
-      s.openCursor().onsuccess = (e) => {
-        const cur = e.target.result;
-        if (cur) { items.push(cur.value); cur.continue(); }
-        else resolve(items);
-      };
-    });
-  });
+  return getAll('sales');
 }
