@@ -1,5 +1,5 @@
 import { getProducts, addSale } from './db.js';
-import { money, showToast } from './shared.js';
+import { formatMoney, showToast } from './shared.js';
 
 const productGrid = document.getElementById('productGrid');
 const cartItems = document.getElementById('cartItems');
@@ -25,7 +25,7 @@ async function renderProducts() {
   productGrid.innerHTML = products.map(p => `
     <button data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" class="add-product border-2 border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:bg-indigo-50 transition text-left">
   <div class="font-semibold text-gray-900 mb-1">${p.name}</div>
-  <div class="text-lg font-bold text-indigo-600">₹${money(p.price)}</div>
+  <div class="text-lg font-bold text-indigo-600">${formatMoney(p.price)}</div>
     </button>
   `).join('');
 
@@ -63,9 +63,9 @@ function renderCart() {
   if (cart.length === 0) {
     cartItems.innerHTML = '<div class="text-center text-gray-500 py-4">Cart is empty</div>';
     itemCountEl.textContent = '0';
-    subtotalEl.textContent = '₹0.00';
-    discountAmountEl.textContent = '-₹0.00';
-    grandTotalEl.textContent = '₹0.00';
+    subtotalEl.textContent = formatMoney(0);
+    discountAmountEl.textContent = `-${formatMoney(0)}`;
+    grandTotalEl.textContent = formatMoney(0);
     return;
   }
 
@@ -79,7 +79,7 @@ function renderCart() {
       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <div class="flex-1">
           <div class="font-medium text-gray-900">${c.name}</div>
-          <div class="text-sm text-gray-600">₹${money(c.price)} × ${c.qty}</div>
+          <div class="text-sm text-gray-600">${formatMoney(c.price)} × ${c.qty}</div>
         </div>
         <div class="flex items-center gap-2">
           <button data-idx="${idx}" class="dec-btn w-8 h-8 rounded border border-gray-300 hover:bg-gray-100">−</button>
@@ -94,9 +94,9 @@ function renderCart() {
   const total = Math.max(0, subtotal - discount);
 
   itemCountEl.textContent = itemCount;
-  subtotalEl.textContent = `₹${money(subtotal)}`;
-  discountAmountEl.textContent = `-₹${money(discount)}`;
-  grandTotalEl.textContent = `₹${money(total)}`;
+  subtotalEl.textContent = formatMoney(subtotal);
+  discountAmountEl.textContent = `-${formatMoney(discount)}`;
+  grandTotalEl.textContent = formatMoney(total);
 
   // Attach handlers
   document.querySelectorAll('.dec-btn').forEach(btn => {
@@ -147,13 +147,13 @@ function generateThermalReceipt() {
     'Items:',
     ...cart.map(item => [
       item.name,
-      `${item.qty} x ₹${money(item.price)}    ₹${money(item.qty * item.price)}`
+      `${item.qty} x ${formatMoney(item.price)}    ${formatMoney(item.qty * item.price)}`
     ]).flat(),
     '--------------------------------',
-    `Subtotal:          ₹${money(subtotal)}`,
-    `Discount:         -₹${money(discount)}`,
+    `Subtotal:          ${formatMoney(subtotal)}`,
+    `Discount:         -${formatMoney(discount)}`,
     '--------------------------------',
-    `Total:             ₹${money(total)}`,
+    `Total:             ${formatMoney(total)}`,
     '--------------------------------',
     '',
     '       Thank You!',

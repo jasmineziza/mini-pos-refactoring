@@ -1,5 +1,5 @@
 import { getSalesInRange } from './db.js';
-import { money } from './shared.js';
+import { money, formatMoney } from './shared.js';
 
 const fromDate = document.getElementById('fromDate');
 const toDate = document.getElementById('toDate');
@@ -36,12 +36,12 @@ function tableHTML(rows) {
             <td class="border border-gray-200 px-4 py-2">${r.id}</td>
             <td class="border border-gray-200 px-4 py-2">${new Date(r.date).toLocaleString()}</td>
             <td class="border border-gray-200 px-4 py-2 text-right">${r.items.reduce((a, b) => a + b.qty, 0)}</td>
-            <td class="border border-gray-200 px-4 py-2 text-right font-semibold">₹${money(r.total)}</td>
+            <td class="border border-gray-200 px-4 py-2 text-right font-semibold">${formatMoney(r.total)}</td>
           </tr>
         `).join('')}
         <tr class="bg-gray-50 font-bold">
           <td colspan="3" class="border border-gray-200 px-4 py-2 text-right">Grand Total:</td>
-          <td class="border border-gray-200 px-4 py-2 text-right">₹${money(rows.reduce((a, r) => a + r.total, 0))}</td>
+          <td class="border border-gray-200 px-4 py-2 text-right">${formatMoney(rows.reduce((a, r) => a + r.total, 0))}</td>
         </tr>
       </tbody>
     </table>
@@ -56,7 +56,7 @@ async function loadReport() {
   const rows = await getSalesInRange(from.toISOString(), to.toISOString());
   const total = rows.reduce((a, r) => a + r.total, 0);
 
-  reportSummary.textContent = `${rows.length} transactions, total ₹${money(total)}`;
+  reportSummary.textContent = `${rows.length} transactions, total ${formatMoney(total)}`;
   reportTable.innerHTML = tableHTML(rows);
 
   return rows;

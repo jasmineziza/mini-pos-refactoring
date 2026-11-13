@@ -1,5 +1,5 @@
 import { getProducts, getAllSales } from './db.js';
-import { money } from './shared.js';
+import { formatMoney } from './shared.js';
 
 async function loadDashboard() {
   const products = await getProducts();
@@ -15,8 +15,8 @@ async function loadDashboard() {
   const totalSales = sales.reduce((a, s) => a + s.total, 0);
 
   // Update stats
-  document.getElementById('todaySales').textContent = `₹${money(todayTotal)}`;
-  document.getElementById('totalSales').textContent = `₹${money(totalSales)}`;
+  document.getElementById('todaySales').textContent = formatMoney(todayTotal);
+  document.getElementById('totalSales').textContent = formatMoney(totalSales);
   document.getElementById('totalTransactions').textContent = sales.length;
   document.getElementById('totalProducts').textContent = products.length;
 
@@ -35,7 +35,7 @@ async function loadDashboard() {
             <div class="text-sm text-gray-500">${new Date(s.date).toLocaleString()}</div>
           </div>
           <div class="text-right">
-            <div class="font-semibold text-gray-900">₹${money(s.total)}</div>
+            <div class="font-semibold text-gray-900">${formatMoney(s.total)}</div>
             <div class="text-sm text-gray-500">${s.items.reduce((a, i) => a + i.qty, 0)} items</div>
           </div>
         </div>

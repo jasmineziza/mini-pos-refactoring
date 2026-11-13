@@ -1,5 +1,5 @@
 import { addProduct, getProducts, deleteProduct } from './db.js';
-import { money, showToast } from './shared.js';
+import { formatMoney, showToast } from './shared.js';
 
 const productForm = document.getElementById('productForm');
 const pName = document.getElementById('pName');
@@ -27,7 +27,7 @@ async function renderProducts() {
           </svg>
         </button>
       </div>
-  <div class="text-2xl font-bold text-indigo-600">₹${money(p.price)}</div>
+  <div class="text-2xl font-bold text-indigo-600">${formatMoney(p.price)}</div>
     </div>
   `).join('');
 

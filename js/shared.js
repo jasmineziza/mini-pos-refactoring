@@ -26,9 +26,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Utility
-export function money(n) {
-  return (Math.round(Number(n) * 100) / 100).toFixed(2);
-}
+export { money, formatMoney } from './format.js';
 
 export function showToast(message, type = 'success') {
   const toast = document.createElement('div');
