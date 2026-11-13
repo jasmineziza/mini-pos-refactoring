@@ -128,7 +128,7 @@ function generateThermalReceipt({ subtotal, discount, total }) {
     '       Thank You!',
     '    Please Visit Again',
     ''
-  ].join('\\n');
+  ].join('\n');
 
   return receipt;
 }
