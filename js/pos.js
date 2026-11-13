@@ -1,5 +1,6 @@
 import { getProducts, addSale } from './db.js';
-import { formatMoney, showToast } from './shared.js';
+import { formatMoney, roundMoney, showToast } from './shared.js';
+import { calculateTotals } from './cart.js';
 
 const productGrid = document.getElementById('productGrid');
 const cartItems = document.getElementById('cartItems');
@@ -49,14 +50,8 @@ function addToCart(prod) {
   showToast(`${prod.name} added to cart`, 'success');
 }
 
-function calculateDiscount(subtotal) {
-  const value = parseFloat(discountValueEl.value) || 0;
-  const type = discountTypeEl.value;
-  
-  if (type === 'percent') {
-    return (subtotal * (value / 100));
-  }
-  return value;
+function getTotals() {
+  return calculateTotals(cart, discountValueEl.value, discountTypeEl.value);
 }
 
 function renderCart() {
@@ -69,12 +64,9 @@ function renderCart() {
     return;
   }
 
-  let itemCount = 0;
-  let subtotal = 0;
+  const { itemCount, subtotal, discount, total } = getTotals();
 
   cartItems.innerHTML = cart.map((c, idx) => {
-    itemCount += c.qty;
-    subtotal += c.qty * c.price;
     return `
       <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <div class="flex-1">
@@ -89,9 +81,6 @@ function renderCart() {
       </div>
     `;
   }).join('');
-
-  const discount = calculateDiscount(subtotal);
-  const total = Math.max(0, subtotal - discount);
 
   itemCountEl.textContent = itemCount;
   subtotalEl.textContent = formatMoney(subtotal);
@@ -132,11 +121,8 @@ clearCartBtn.addEventListener('click', () => {
   }
 });
 
-function generateThermalReceipt() {
+function generateThermalReceipt({ subtotal, discount, total }) {
   const date = new Date().toLocaleString();
-  const subtotal = Number(subtotalEl.textContent.slice(1));
-  const discount = Number(discountAmountEl.textContent.slice(2));
-  const total = Number(grandTotalEl.textContent.slice(1));
   
   // Receipt is 32 characters wide for thermal printer
   let receipt = [
@@ -210,23 +196,21 @@ async function processSale(withPrint = false) {
     return;
   }
 
-  const subtotal = Number(subtotalEl.textContent.slice(1));
-  const discount = Number(discountAmountEl.textContent.slice(2));
-  const total = Number(grandTotalEl.textContent.slice(1));
+  const { subtotal, discount, total } = getTotals();
 
   const sale = {
     date: new Date().toISOString(),
     items: cart.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
-    subtotal,
-    discount,
-    total
+    subtotal: roundMoney(subtotal),
+    discount: roundMoney(discount),
+    total: roundMoney(total)
   };
 
   await addSale(sale);
   
   if (withPrint) {
     // Generate and print thermal receipt
-    const receipt = generateThermalReceipt();
+    const receipt = generateThermalReceipt(sale);
     printReceipt(receipt);
   }
   

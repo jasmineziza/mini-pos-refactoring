@@ -8,3 +8,8 @@ export function money(n) {
 export function formatMoney(n) {
   return `${CURRENCY}${money(n)}`;
 }
+
+// Membulatkan ke 2 desimal sebagai Number (nilai yang disimpan ke database).
+export function roundMoney(n) {
+  return Number(money(n));
+}

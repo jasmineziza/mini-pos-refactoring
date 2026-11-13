@@ -26,7 +26,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Utility
-export { money, formatMoney } from './format.js';
+export { money, formatMoney, roundMoney } from './format.js';
 
 export function showToast(message, type = 'success') {
   const toast = document.createElement('div');
