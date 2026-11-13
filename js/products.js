@@ -33,7 +33,7 @@ async function renderProducts() {
 
   // Attach delete handlers
   document.querySelectorAll('.del-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', async () => {
       if (confirm('Delete this product?')) {
         await deleteProduct(btn.dataset.id);
         showToast('Product deleted');

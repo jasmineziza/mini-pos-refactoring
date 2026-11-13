@@ -1,6 +1,8 @@
 import { getProducts, addSale } from './db.js';
 import { formatMoney, roundMoney, showToast } from './shared.js';
-import { calculateTotals } from './cart.js';
+import {
+  calculateTotals, getItems, isEmpty, addItem, changeQty, removeItem, clearCart
+} from './cart.js';
 
 const productGrid = document.getElementById('productGrid');
 const cartItems = document.getElementById('cartItems');
@@ -12,8 +14,6 @@ const discountValueEl = document.getElementById('discountValue');
 const discountTypeEl = document.getElementById('discountType');
 const clearCartBtn = document.getElementById('clearCart');
 const checkoutBtn = document.getElementById('checkoutBtn');
-
-let cart = [];
 
 async function renderProducts() {
   const products = await getProducts();
@@ -43,15 +43,13 @@ async function renderProducts() {
 }
 
 function addToCart(prod) {
-  const found = cart.find(c => c.id === prod.id);
-  if (found) found.qty += 1;
-  else cart.push({ ...prod, qty: 1 });
+  addItem(prod);
   renderCart();
   showToast(`${prod.name} added to cart`, 'success');
 }
 
 function getTotals() {
-  return calculateTotals(cart, discountValueEl.value, discountTypeEl.value);
+  return calculateTotals(getItems(), discountValueEl.value, discountTypeEl.value);
 }
 
 const EMPTY_CART_HTML = '<div class="text-center text-gray-500 py-4">Cart is empty</div>';
@@ -80,9 +78,9 @@ function renderTotals({ itemCount, subtotal, discount, total }) {
 }
 
 const CART_ACTIONS = {
-  dec: (idx) => { cart[idx].qty = Math.max(1, cart[idx].qty - 1); },
-  inc: (idx) => { cart[idx].qty += 1; },
-  remove: (idx) => { cart.splice(idx, 1); }
+  dec: (idx) => changeQty(idx, -1),
+  inc: (idx) => changeQty(idx, +1),
+  remove: (idx) => removeItem(idx)
 };
 
 // Satu listener untuk semua tombol keranjang (event delegation), dipasang sekali.
@@ -94,13 +92,13 @@ cartItems.addEventListener('click', (e) => {
 });
 
 function renderCart() {
-  cartItems.innerHTML = cart.length === 0 ? EMPTY_CART_HTML : cart.map(cartItemHTML).join('');
+  cartItems.innerHTML = isEmpty() ? EMPTY_CART_HTML : getItems().map(cartItemHTML).join('');
   renderTotals(getTotals());
 }
 
 clearCartBtn.addEventListener('click', () => {
-  if (cart.length > 0 && confirm('Clear cart?')) {
-    cart = [];
+  if (!isEmpty() && confirm('Clear cart?')) {
+    clearCart();
     renderCart();
     showToast('Cart cleared');
   }
@@ -116,7 +114,7 @@ function generateThermalReceipt({ subtotal, discount, total }) {
     `Date: ${date}`,
     '--------------------------------',
     'Items:',
-    ...cart.map(item => [
+    ...getItems().map(item => [
       item.name,
       `${item.qty} x ${formatMoney(item.price)}    ${formatMoney(item.qty * item.price)}`
     ]).flat(),
@@ -176,7 +174,7 @@ function printReceipt(receipt) {
 });
 
 async function processSale(withPrint = false) {
-  if (cart.length === 0) {
+  if (isEmpty()) {
     showToast('Cart is empty', 'error');
     return;
   }
@@ -185,7 +183,7 @@ async function processSale(withPrint = false) {
 
   const sale = {
     date: new Date().toISOString(),
-    items: cart.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
+    items: getItems().map(({ id, name, price, qty }) => ({ id, name, price, qty })),
     subtotal: roundMoney(subtotal),
     discount: roundMoney(discount),
     total: roundMoney(total)
@@ -199,7 +197,7 @@ async function processSale(withPrint = false) {
     printReceipt(receipt);
   }
   
-  cart = [];
+  clearCart();
   renderCart();
   showToast('Sale completed successfully!', 'success');
 }

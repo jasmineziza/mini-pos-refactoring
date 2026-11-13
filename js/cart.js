@@ -18,3 +18,32 @@ export function calculateTotals(items, discountValue, discountType) {
   const total = Math.max(0, subtotal - discount);
   return { itemCount, subtotal, discount, total };
 }
+
+// State keranjang dibungkus di modul ini; pos.js hanya mengubahnya lewat fungsi di bawah.
+let items = [];
+
+export function getItems() {
+  return items;
+}
+
+export function isEmpty() {
+  return items.length === 0;
+}
+
+export function addItem(prod) {
+  const found = items.find(item => item.id === prod.id);
+  if (found) found.qty += 1;
+  else items.push({ ...prod, qty: 1 });
+}
+
+export function changeQty(idx, delta) {
+  items[idx].qty = Math.max(1, items[idx].qty + delta);
+}
+
+export function removeItem(idx) {
+  items.splice(idx, 1);
+}
+
+export function clearCart() {
+  items = [];
+}
